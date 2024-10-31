@@ -1,4 +1,5 @@
 #include "Bat.h"
+#include "Ball.h"
 
 #include <iostream>
 #include <sstream>
@@ -15,12 +16,12 @@ int main()
 	int lives = 3;
 
 	Bat bat(1920.f / 2, 1080.f - 20);
+	Ball ball(1920.f / 2, 0);
 
-	
 	sf::Font font;
 	sf::Text hud;
 
-	std::cerr << font.loadFromFile("fonts/DS-DIGIT.ttf");
+	font.loadFromFile("fonts/DS-DIGIT.ttf");
 	hud.setFont(font);
 	hud.setCharacterSize(75);
 	hud.setFillColor(sf::Color::White);
@@ -64,18 +65,52 @@ int main()
 		//UPDATE OBJECTS
 		sf::Time dt = clock.restart();
 		bat.update(dt);
+		ball.update(dt);
 
 		std::stringstream ss;
 		ss << "Score: " << score << " Lives: " << lives;
 		hud.setString(ss.str());
 
+		if (ball.getPosition().top > window.getSize().y)
+		{
+			ball.reboundBottom();
+
+			lives--;
+			
+			//reset the game hud
+			if (lives < 1)
+			{
+				score = 0;
+
+				lives = 3;
+			}
+		}
+
+		if (ball.getPosition().top < 0)
+		{
+			std::cerr << ball.getPosition().top;
+			ball.reboundBatOrTop();
+			score++;
+			
+		}
+		if (ball.getPosition().left < 0 ||
+			ball.getPosition().left + ball.getPosition().width > window.getSize().x)
+		{
+			
+			ball.reboundSides();
+		}
+		if (ball.getPosition().intersects(bat.getPosition()))
+		{
+			ball.reboundBatOrTop();
+		}
 		//DRAW OBJECTS
 
 		window.clear();
 
 		window.draw(bat.getShape());
+		window.draw(ball.getShape());
 		window.draw(hud);
-		
+
 		window.display();
 	}
 
